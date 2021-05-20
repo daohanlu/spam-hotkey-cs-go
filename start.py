@@ -4,6 +4,7 @@ from time import sleep
 import threading
 import random
 import upsidedown
+import requests
 
 k = Controller()
 text_files = glob('texts/*.txt')
@@ -19,7 +20,7 @@ def listen_keyboard_on_press(key):
     global alt_held
     # type message when 'y' is pressed on the keyboard
     try:
-        if (key.char == 'y' or key.char == 'y'):
+        if (key.char == 'y' or key.char == 'Y' or key.char == 'u' or key.char == 'U'):
             evt.set()
         elif (key.char == 'q' or key.char == 'Q') and alt_held:
             print('quitting')
@@ -29,11 +30,20 @@ def listen_keyboard_on_press(key):
     except AttributeError:
         if key == Key.alt_l:
             alt_held = True
+        elif key == Key.shift_r:
+            k.release(Key.shift_r)
+            evt.set()
 
 def listen_keyboard_on_release(key):
     global alt_held
     if key == Key.alt_l:
         alt_held= False
+
+def get_dad_joke():
+    header = {'Accept': 'application/json'}
+    ret_json = requests.get(url = "https://icanhazdadjoke.com/", headers=header).json()
+    joke = ret_json['joke']
+    return joke
 
 listener = Listener(
     on_press=listen_keyboard_on_press,
@@ -41,8 +51,23 @@ listener = Listener(
 listener.start()
 
 for text_file in text_files:
+    dad_jokes = False
     text = open(text_file, 'r')
     lines = text.read().split('\n')
+    if lines[0] == '#https://icanhazdadjoke.com/':
+        while True:
+            evt.wait()
+            dad_jokes = True
+            line = get_dad_joke()
+            if quit_next:
+                evt.clear()
+                exit()
+            sleep(0.03)
+            k.type(line)
+            
+            k.press(Key.enter)
+            k.release(Key.enter)
+            evt.clear()
     lines = list(filter(lambda x: x.strip() != "", lines))
     text.close()
     total_lines = len(lines)
