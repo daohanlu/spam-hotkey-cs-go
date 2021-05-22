@@ -30,8 +30,8 @@ def listen_keyboard_on_press(key):
     except AttributeError:
         if key == Key.alt_l:
             alt_held = True
-        elif key == Key.shift_r:
-            k.release(Key.shift_r)
+        elif key == Key.alt_gr:
+            k.release(Key.alt_gr)
             evt.set()
 
 def listen_keyboard_on_release(key):
