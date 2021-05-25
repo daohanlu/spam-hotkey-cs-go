@@ -20,7 +20,7 @@ def listen_keyboard_on_press(key):
     global alt_held
     # type message when 'y' is pressed on the keyboard
     try:
-        if (key.char == 'y' or key.char == 'Y' or key.char == 'u' or key.char == 'U'):
+        if (key.char == 'y' or key.char == 'Y'):
             evt.set()
         elif (key.char == 'q' or key.char == 'Q') and alt_held:
             print('quitting')
