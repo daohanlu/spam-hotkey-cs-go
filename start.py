@@ -14,6 +14,8 @@ currentline = ''
 evt = threading.Event()
 alt_held = False
 quit_next = False
+use_joke = False
+joke_line_buffer = None
 
 def listen_keyboard_on_press(key):
     print(key)
@@ -33,6 +35,11 @@ def listen_keyboard_on_press(key):
         elif key == Key.alt_gr:
             k.release(Key.alt_gr)
             evt.set()
+        elif key == Key.ctrl_r:
+            k.release(Key.ctrl_r)
+            global use_joke
+            use_joke = True
+            evt.set()
 
 def listen_keyboard_on_release(key):
     global alt_held
@@ -51,14 +58,18 @@ listener = Listener(
 listener.start()
 
 for text_file in text_files:
+    
     dad_jokes = False
     text = open(text_file, 'r')
     lines = text.read().split('\n')
     if lines[0] == '#https://icanhazdadjoke.com/':
         while True:
-            evt.wait()
+            ret = evt.wait()
             dad_jokes = True
-            line = get_dad_joke()
+            if joke_line_buffer is None or len(joke_line_buffer) == 0:
+                    joke_line_buffer = get_dad_joke().split("\n")
+                    joke_line_buffer.reverse()
+            line = joke_line_buffer.pop()
             if quit_next:
                 evt.clear()
                 exit()
@@ -96,7 +107,14 @@ for text_file in text_files:
                 evt.clear()
                 exit()
             sleep(0.03)
-            line = line + " ({}/{})".format(i+1, total_lines)
+            if use_joke:
+                if joke_line_buffer is None or len(joke_line_buffer) == 0:
+                    joke_line_buffer = get_dad_joke().split("\n")
+                    joke_line_buffer.reverse()
+                line = joke_line_buffer.pop()
+                use_joke = False
+            else:
+                line = line + " ({}/{})".format(i+1, total_lines)
             k.type(line)
             
             k.press(Key.enter)
