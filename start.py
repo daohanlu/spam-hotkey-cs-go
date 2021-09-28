@@ -23,7 +23,8 @@ def listen_keyboard_on_press(key):
     # type message when 'y' is pressed on the keyboard
     try:
         if (key.char == 'y' or key.char == 'Y'):
-            evt.set()
+            #evt.set()
+            pass
         elif (key.char == 'q' or key.char == 'Q') and alt_held:
             print('quitting')
             global quit_next
@@ -60,7 +61,7 @@ listener.start()
 for text_file in text_files:
     
     dad_jokes = False
-    text = open(text_file, 'r')
+    text = open(text_file, 'r', encoding='utf-8')
     lines = text.read().split('\n')
     if lines[0] == '#https://icanhazdadjoke.com/':
         while True:
@@ -87,6 +88,26 @@ for text_file in text_files:
         if line.strip() == '':
             continue
         else:
+            evt.wait()
+            while use_joke:
+                use_joke = False
+                if quit_next:
+                    evt.clear()
+                    exit()
+                if joke_line_buffer is None or len(joke_line_buffer) == 0:
+                    joke_line_buffer = get_dad_joke().split("\n")
+                    joke_line_buffer.reverse()
+                joke = joke_line_buffer.pop()
+                k.type(joke)            
+                k.press(Key.enter)
+                k.release(Key.enter)
+                evt.clear()
+                sleep(0.03)
+                evt.wait()
+            if quit_next:
+                evt.clear()
+                exit()
+            
             # random upper case or scramble case event
             if random.random() < 0.333:
                 if random.random() < 0.5:
@@ -102,19 +123,8 @@ for text_file in text_files:
             # random upside down event
             if random.random() < 0.05:
                 line = upsidedown.transform(line)
-            evt.wait()
-            if quit_next:
-                evt.clear()
-                exit()
             sleep(0.03)
-            if use_joke:
-                if joke_line_buffer is None or len(joke_line_buffer) == 0:
-                    joke_line_buffer = get_dad_joke().split("\n")
-                    joke_line_buffer.reverse()
-                line = joke_line_buffer.pop()
-                use_joke = False
-            else:
-                line = line + " ({}/{})".format(i+1, total_lines)
+            line = line + " ({}/{})".format(i+1, total_lines)
             k.type(line)
             
             k.press(Key.enter)
